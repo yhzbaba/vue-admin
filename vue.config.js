@@ -16,13 +16,7 @@ module.exports = {
       //配置解析别名
       extensions: [".js", "json", ".vue"],
       alias: {
-        "@": path.resolve(__dirname, "./src"),
-        public: path.resolve(__dirname, "./public"),
-        components: path.resolve(__dirname, "./src/components"),
-        common: path.resolve(__dirname, "./src/common"),
-        api: path.resolve(__dirname, "./src/api"),
-        views: path.resolve(__dirname, "./src/views"),
-        data: path.resolve(__dirname, "./src/data")
+        "@": path.resolve(__dirname, "./src")
       }
     };
   },

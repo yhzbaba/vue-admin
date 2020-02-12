@@ -38,6 +38,15 @@
             maxlength="20"
           ></el-input>
         </el-form-item>
+        <el-form-item prop="passwords" v-if="model === 'reg'">
+          <label>重复密码</label>
+          <el-input
+            type="password"
+            v-model="ruleForm.passwords"
+            autocomplete="off"
+            maxlength="20"
+          ></el-input>
+        </el-form-item>
         <el-form-item prop="code">
           <label>验证码</label>
           <el-row :gutter="10">
@@ -64,61 +73,89 @@
   </div>
 </template>
 <script>
+import {
+  stripscript,
+  validateEmailReg,
+  validatePasswordReg,
+  validateCodeReg
+} from "@/utils/validate";
 export default {
   name: "login",
   data() {
-    var checkAge = (rule, value, callback) => {
-      let reg = /^[a-z0-9A-Z]{6}$/;
+    var checkCode = (rule, value, callback) => {
       if (!value) {
         return callback(new Error("Please input the validate code"));
-      } else if (!reg.test(value)) {
+      } else if (!validateCodeReg(value)) {
         callback(new Error("验证码格式有误"));
       } else {
         callback();
       }
     };
     var validateEmail = (rule, value, callback) => {
-      var reg = /^([a-zA-Z|0-9])\w+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;
       if (value === "") {
         callback(new Error("Please input the email"));
-      } else if (!reg.test(value)) {
+      } else if (!validateEmailReg(value)) {
         callback(new Error("邮箱格式错误"));
       } else {
         callback();
       }
     };
     var validatePassword = (rule, value, callback) => {
-      let reg = /^(\w){6,20}$/;
+      this.ruleForm.password = stripscript(value);
+      value = this.ruleForm.password;
       if (value === "") {
         callback(new Error("Please input the password"));
-      } else if (!reg.test(value)) {
+      } else if (!validatePasswordReg(value)) {
         callback(new Error("密码长度6-20位 只能是字母数字下划线"));
+      } else {
+        callback();
+      }
+    };
+    var validatePasswords = (rule, value, callback) => {
+      //如果为login,直接通过
+      if (this.model === "login") {
+        callback();
+      }
+      //过滤
+      this.ruleForm.passwords = stripscript(value);
+      value = this.ruleForm.passwords;
+      if (value === "") {
+        callback(new Error("Please input the password again"));
+      } else if (value != this.ruleForm.password) {
+        this.ruleForm.password = "";
+        this.ruleForm.passwords = "";
+        callback(new Error("两次密码不一致,请重新输入"));
       } else {
         callback();
       }
     };
     return {
       menuTab: [
-        { txt: "登录", current: true },
-        { txt: "注册", current: false }
+        { txt: "登录", current: true, type: "login" },
+        { txt: "注册", current: false, type: "reg" }
       ],
       //表单的数据
       ruleForm: {
         email: "",
         password: "",
-        code: ""
+        code: "",
+        passwords: ""
       },
       rules: {
         email: [{ validator: validateEmail, trigger: "blur" }],
         password: [{ validator: validatePassword, trigger: "blur" }],
-        code: [{ validator: checkAge, trigger: "blur" }]
-      }
+        code: [{ validator: checkCode, trigger: "blur" }],
+        passwords: [{ validator: validatePasswords, trigger: "blur" }]
+      },
+      //模块值
+      model: "login"
     };
   },
   created() {},
   mounted() {},
   methods: {
     toggleMenu(data) {
+      this.model = data.type;
       this.menuTab.forEach(elem => {
         elem.current = false;
       });

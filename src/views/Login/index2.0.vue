@@ -79,11 +79,10 @@ import {
   validatePasswordReg,
   validateCodeReg
 } from "@/utils/validate";
-import { reactive, ref, onMounted } from "@vue/composition-api";
 export default {
-  setup(props, context) {
-    //这里面放置data数据、生命周期、自定义函数
-    let checkCode = (rule, value, callback) => {
+  name: "login",
+  data() {
+    var checkCode = (rule, value, callback) => {
       if (!value) {
         return callback(new Error("Please input the validate code"));
       } else if (!validateCodeReg(value)) {
@@ -92,7 +91,7 @@ export default {
         callback();
       }
     };
-    let validateEmail = (rule, value, callback) => {
+    var validateEmail = (rule, value, callback) => {
       if (value === "") {
         callback(new Error("Please input the email"));
       } else if (!validateEmailReg(value)) {
@@ -101,9 +100,9 @@ export default {
         callback();
       }
     };
-    let validatePassword = (rule, value, callback) => {
-      ruleForm.password = stripscript(value);
-      value = ruleForm.password;
+    var validatePassword = (rule, value, callback) => {
+      this.ruleForm.password = stripscript(value);
+      value = this.ruleForm.password;
       if (value === "") {
         callback(new Error("Please input the password"));
       } else if (!validatePasswordReg(value)) {
@@ -112,66 +111,59 @@ export default {
         callback();
       }
     };
-    let validatePasswords = (rule, value, callback) => {
+    var validatePasswords = (rule, value, callback) => {
       //如果为login,直接通过
-      if (model.value === "login") {
+      if (this.model === "login") {
         callback();
       }
       //过滤
-      ruleForm.passwords = stripscript(value);
-      value = ruleForm.passwords;
+      this.ruleForm.passwords = stripscript(value);
+      value = this.ruleForm.passwords;
       if (value === "") {
         callback(new Error("Please input the password again"));
-      } else if (value != ruleForm.password) {
-        ruleForm.password = "";
-        ruleForm.passwords = "";
+      } else if (value != this.ruleForm.password) {
+        this.ruleForm.password = "";
+        this.ruleForm.passwords = "";
         callback(new Error("两次密码不一致,请重新输入"));
       } else {
         callback();
       }
     };
-
-    /**
-     * 声明数据
-     */
-    const menuTab = reactive([
-      { txt: "登录", current: true, type: "login" },
-      { txt: "注册", current: false, type: "reg" }
-    ]);
-
-    //模块值
-    const model = ref("login");
-
-    //表单绑定数据
-    const ruleForm = reactive({
-      email: "",
-      password: "",
-      code: "",
-      passwords: ""
-    });
-
-    //表单的验证
-    const rules = reactive({
-      email: [{ validator: validateEmail, trigger: "blur" }],
-      password: [{ validator: validatePassword, trigger: "blur" }],
-      code: [{ validator: checkCode, trigger: "blur" }],
-      passwords: [{ validator: validatePasswords, trigger: "blur" }]
-    });
-
-    /**
-     * 声明函数
-     */
-    const toggleMenu = data => {
-      menuTab.forEach(elem => {
+    return {
+      menuTab: [
+        { txt: "登录", current: true, type: "login" },
+        { txt: "注册", current: false, type: "reg" }
+      ],
+      //表单的数据
+      ruleForm: {
+        email: "",
+        password: "",
+        code: "",
+        passwords: ""
+      },
+      rules: {
+        email: [{ validator: validateEmail, trigger: "blur" }],
+        password: [{ validator: validatePassword, trigger: "blur" }],
+        code: [{ validator: checkCode, trigger: "blur" }],
+        passwords: [{ validator: validatePasswords, trigger: "blur" }]
+      },
+      //模块值
+      model: "login"
+    };
+  },
+  created() {},
+  mounted() {},
+  methods: {
+    toggleMenu(data) {
+      this.model = data.type;
+      this.menuTab.forEach(elem => {
         elem.current = false;
       });
       //高光
       data.current = true;
-      //修改模块值
-      model.value = data.type;
-    };
-    const submitForm = formName => {
-      context.refs[formName].validate(valid => {
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate(valid => {
         if (valid) {
           alert("submit!");
         } else {
@@ -179,25 +171,7 @@ export default {
           return false;
         }
       });
-    };
-
-    /**
-     * 生命周期
-     */
-    //挂载完成后
-    onMounted(() => {});
-
-    /**
-     * 最后要return出去外面才能用
-     */
-    return {
-      menuTab,
-      model,
-      ruleForm,
-      rules,
-      toggleMenu,
-      submitForm
-    };
+    }
   }
 };
 </script>
